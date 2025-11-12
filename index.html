@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pantalla de Carga - Juego Lógico</title>
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #6b00cc, #400080, #23004a);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        font-family: "Poppins", sans-serif;
+        color: #fff;
+    }
+
+    .container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 3em;
+        letter-spacing: 4px;
+        background: linear-gradient(90deg, #ffffff, #00eaff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: glow 3s infinite alternate;
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+    }
+
+    @keyframes glow {
+        from { text-shadow: 0 0 10px #00ffff; }
+        to { text-shadow: 0 0 25px #00aaff, 0 0 40px #00ffff; }
+    }
+
+    button {
+        background: #00ffaa;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-size: 1.2em;
+        color: #000;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 0 15px #00ffaa80;
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+    }
+
+    button:hover {
+        background: #00cc88;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+
+    .dev {
+        position: absolute;
+        bottom: 15px;
+        left: 20px;
+        background: #00000055;
+        color: #ffffff;
+        border: 1px solid #00ffff88;
+        border-radius: 8px;
+        padding: 8px 15px;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: 0.3s;
+        z-index: 3;
+    }
+
+    .dev:hover {
+        background: #00ffff33;
+        transform: scale(1.1);
+    }
+
+    .katherine {
+        position: absolute;
+        bottom: 70px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #00ffffaa;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 1em;
+        color: #ffffff;
+        box-shadow: 0 0 15px #00ffff88;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        text-align: left;
+        line-height: 1.6em;
+    }
+
+    .visible {
+        opacity: 1;
+    }
+
+    .symbol {
+        position: absolute;
+        top: -10%;
+        font-size: 1.5em;
+        color: #b5ffff;
+        opacity: 0.8;
+        animation: fall linear infinite;
+        z-index: 1;
+    }
+
+    @keyframes fall {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(110vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Juego Lógico</h1>
+        <button id="start">Empezar</button>
+        
+        <div class="dev" id="devBtn">Dev</div>
+        
+        <div class="katherine" id="devNames">
+            <strong>💻 Desarrolladores:</strong><br>
+            ✨ Katherine Muñoz<br>
+            🔹 Davidson Díaz<br>
+            🔹 Mariana Roncancio<br>
+            🔹 Juan Restrepo<br>
+        </div>
+    </div>
+
+<script>
+    const btn = document.getElementById("start");
+    const dev = document.getElementById("devBtn");
+    const devNames = document.getElementById("devNames");
+
+    btn.addEventListener("click", () => {
+        btn.textContent = "Cargando...";
+        btn.disabled = true;
+        btn.style.background = "#555";
+        setTimeout(() => {
+            window.location.href = "seleccionjuego.html";
+        }, 1500);
+    });
+
+    dev.addEventListener("click", () => {
+        devNames.classList.toggle("visible");
+    });
+
+    const symbols = [
+        "√", "π", "φ", "e", "∑", "∫", "∞", "∆", "µ", "θ",
+        "∂", "λ", "Ω", "ψ", "≠", "≈", "≤", "≥", "⊕", "⊗",
+        "dx", "dy", "(1+√2)/µ", "√5", "α", "β", "γ", "δ", "∇"
+    ];
+
+    const container = document.querySelector(".container");
+
+    function createSymbol() {
+        const span = document.createElement("span");
+        span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        span.classList.add("symbol");
+        span.style.left = Math.random() * 100 + "vw";
+        span.style.fontSize = (Math.random() * 1.5 + 1) + "em";
+        span.style.animationDuration = (Math.random() * 5 + 4) + "s";
+        span.style.opacity = Math.random() * 0.8 + 0.2;
+        container.appendChild(span);
+
+        setTimeout(() => {
+            span.remove();
+        }, 10000);
+    }
+
+    setInterval(createSymbol, 300);
+</script>
+
+</body>
+</html>

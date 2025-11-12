@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seleccionar Juego</title>
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        background: linear-gradient(135deg, #52008a, #2a004f, #140027);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        overflow: hidden;
+        font-family: "Poppins", sans-serif;
+        color: #fff;
+    }
+
+    h1 {
+        font-size: 2.8em;
+        margin-bottom: 60px;
+        text-shadow: 0 0 15px #00ffff;
+        letter-spacing: 2px;
+    }
+
+    .game-container {
+        display: flex;
+        gap: 60px;
+    }
+
+    .game-btn {
+        background: linear-gradient(145deg, #00fff0, #00b2ff);
+        border: none;
+        border-radius: 20px;
+        padding: 40px 60px;
+        font-size: 1.5em;
+        color: #000;
+        cursor: pointer;
+        box-shadow: 0 0 30px #00ffff80;
+        transition: 0.4s;
+        font-weight: bold;
+    }
+
+    .game-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px #00ffff, 0 0 80px #0088ff;
+    }
+
+    /* Animación suave del fondo */
+    @keyframes bgMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    body {
+        background: linear-gradient(-45deg, #3a0073, #5300a3, #28004a, #150022);
+        background-size: 400% 400%;
+        animation: bgMove 10s ease infinite;
+    }
+
+    /* Efecto de partículas matemáticas */
+    .symbol {
+        position: absolute;
+        top: -10%;
+        font-size: 1.2em;
+        color: #b5ffff;
+        opacity: 0.7;
+        animation: fall linear infinite;
+        z-index: 0;
+    }
+
+    @keyframes fall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+</style>
+</head>
+<body>
+    <h1>Selecciona tu Juego</h1>
+    <div class="game-container">
+        <button class="game-btn" id="picasBtn">🎯 Picas y Fijas (VS IA)</button>
+        <button class="game-btn" id="opBtn">➕ Operaciones Matemáticas</button>
+    </div>
+
+<script>
+    // Lluvia de símbolos matemáticos (de fondo)
+    const symbols = ["√", "π", "φ", "∑", "∫", "∞", "∆", "µ", "θ", "λ", "Ω", "ψ", "≠", "≈", "≤", "≥", "⊕", "⊗"];
+    const container = document.body;
+
+    function createSymbol() {
+        const span = document.createElement("span");
+        span.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        span.classList.add("symbol");
+        span.style.left = Math.random() * 100 + "vw";
+        span.style.fontSize = (Math.random() * 1.5 + 0.5) + "em";
+        span.style.animationDuration = (Math.random() * 5 + 6) + "s";
+        container.appendChild(span);
+        setTimeout(() => span.remove(), 10000);
+    }
+    setInterval(createSymbol, 250);
+
+    // Botones interactivos
+    document.getElementById("picasBtn").addEventListener("click", () => {
+        alert("🎯 Iniciando Picas y Fijas VS IA...");
+        window.location.href = "picasyfijas.html";
+    });
+
+    document.getElementById("opBtn").addEventListener("click", () => {
+        alert("➕ Iniciando Operaciones Matemáticas...");
+        // window.location.href = "operaciones.html"; ← lo activamos después
+    });
+</script>
+</body>
+</html>
