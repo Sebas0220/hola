@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Picas y Fijas VS IA — Animado</title>
+<style>
+  :root{
+    --neon:#00ffff;
+    --bg1:#3a0066;
+    --bg2:#120020;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, Poppins, system-ui, sans-serif;
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at center,var(--bg1), var(--bg2) 80%);
+    color:#fff;
+  }
+
+  /* HUD */
+  #turno{
+    position:fixed;
+    top:18px;
+    text-align:center;
+    width:100%;
+    font-size:1.1rem;
+    color:rgba(0,255,255,0.95);
+    text-shadow:0 0 12px rgba(0,255,255,0.18);
+    z-index:50;
+  }
+
+  h1{
+    position:fixed;
+    top:58px;
+    left:50%;
+    transform:translateX(-50%);
+    margin:0;
+    font-size:2rem;
+    color:var(--neon);
+    text-shadow:0 0 18px rgba(0,255,255,0.22);
+    z-index:40;
+  }
+
+  /* Layout principal */
+  .game-container{
+    width:92%;
+    max-width:1100px;
+    margin-top:120px;
+    background:rgba(255,255,255,0.04);
+    border-radius:18px;
+    padding:26px;
+    display:flex;
+    gap:20px;
+    box-shadow:0 0 40px rgba(0,255,255,0.06);
+    position:relative;
+    z-index:20;
+  }
+
+  .panel{
+    width:50%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border-radius:12px;
+    padding:18px;
+    min-height:300px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .panel h2{ margin:0 0 8px 0; font-size:1.4rem; color:var(--neon); text-shadow:0 0 8px rgba(0,255,255,0.12) }
+
+  input{
+    width:82%;
+    padding:10px 12px;
+    border-radius:10px;
+    border: none;
+    outline:none;
+    text-align:center;
+    font-size:1.05rem;
+    margin:6px 0;
+    background:rgba(255,255,255,0.06);
+    color:#fff;
+  }
+
+  .btn{
+    margin-top:8px;
+    padding:10px 16px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-weight:700;
+    background:linear-gradient(90deg,#00ffff,#0088ff);
+    color:#000;
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{ transform:translateY(-3px); box-shadow:0 12px 26px rgba(0,0,0,0.45) }
+
+  .log{
+    width:94%;
+    margin-top:12px;
+    background:rgba(0,0,0,0.28);
+    border-radius:10px;
+    padding:10px;
+    font-size:0.95rem;
+    height:200px;
+    overflow:auto;
+    align-self:center;
+    text-align:left;
+  }
+
+  .status-bubble{
+    margin-top:10px;
+    padding:8px 12px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.06);
+    font-size:0.95rem;
+    color:#fff;
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    opacity:0.98;
+    transition:all .25s ease;
+    box-shadow:0 0 10px rgba(0,255,255,0.06);
+  }
+
+  /* thinking dots */
+  .dots{ display:inline-block; width:36px; text-align:left }
+  .dot{ display:inline-block; width:8px; height:8px; margin:0 3px; border-radius:50%; background:#fff; opacity:0.22; transform:translateY(0); }
+  .dot.anim{ animation:dotJump .9s infinite; opacity:1 }
+  .dot.anim:nth-child(2){ animation-delay:.12s }
+  .dot.anim:nth-child(3){ animation-delay:.24s }
+  @keyframes dotJump{
+    0%{ transform:translateY(0); opacity:.25 }
+    50%{ transform:translateY(-8px); opacity:1 }
+    100%{ transform:translateY(0); opacity:.25 }
+  }
+
+  .winnerText{
+    margin-top:12px;
+    font-weight:800;
+    font-size:1.05rem;
+    color: #00ffcc;
+    text-shadow:0 0 12px rgba(0,255,200,0.22);
+    display:block;
+  }
+
+  #reiniciar{ margin-top:18px; display:block; background:linear-gradient(90deg,#ff6ad5,#00eaff); color:#fff; border:none; padding:10px 18px; border-radius:12px; cursor:pointer; box-shadow:0 12px 28px rgba(0,0,0,0.4) }
+
+  #fxCanvas{
+    position:fixed;
+    left:0;top:0;
+    width:100vw;height:100vh;
+    pointer-events:none;
+    z-index:60;
+  }
+
+  .bg-symbol{
+    position:fixed;
+    font-size:1.05rem;
+    color:rgba(0,255,255,0.18);
+    text-shadow:0 0 4px rgba(0,255,255,0.03);
+    pointer-events:none;
+    z-index:5;
+    filter:blur(0.8px);
+  }
+
+  .fija{ color:#00ffcc; font-weight:700 }
+  .pica{ color:#ffd86b; font-weight:700 }
+
+  @media (max-width:900px){
+    .game-container{ flex-direction:column; align-items:center; padding:18px }
+    .panel{ width:94% }
+    h1{font-size:1.6rem; top:52px}
+    #turno{ top:10px; font-size:0.95rem }
+  }
+
+  /* --- MODAL --- */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal {
+    background: linear-gradient(145deg, #1a0030, #2a004f);
+    border: 2px solid var(--neon);
+    border-radius: 14px;
+    padding: 24px 28px;
+    text-align: center;
+    color: #fff;
+    max-width: 320px;
+    box-shadow: 0 0 20px rgba(0,255,255,0.3);
+    animation: popIn .35s ease;
+  }
+  .modal h3 {
+    margin-top: 0;
+    color: var(--neon);
+  }
+  .modal button {
+    margin-top: 14px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg,#00ffff,#0088ff);
+    color: #000;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  #jugador-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#jugador-area input {
+  text-align: center;
+}
+
+#jugador-area .btn {
+  display: block;
+  margin: 10px auto 0 auto;
+}
+</style>
+</head>
+<body>
+  <div id="turno">Esperando jugador...</div>
+  <h1>🎯 Picas y Fijas VS IA 🤖</h1>
+
+  <div class="game-container" role="main" aria-label="Picas y Fijas vs IA">
+    <div class="panel" id="panelJugador">
+      <h2>👤 Jugador</h2>
+      <div id="jugador-area">
+        <p>Ingresa tu número secreto (4 dígitos únicos):</p>
+        <input id="numeroJugador" maxlength="4" placeholder="Ej: 1234" inputmode="numeric" />
+        <button class="btn" id="confirmar">Confirmar</button>
+      </div>
+
+      <div class="status-bubble" id="statusJugador" aria-live="polite"></div>
+      <div class="log" id="logJugador" aria-live="polite"></div>
+    </div>
+
+    <div class="panel" id="panelIA">
+      <h2>🤖 IA</h2>
+      <div class="status-bubble" id="statusIA" aria-live="polite"></div>
+      <div class="log" id="logIA"></div>
+    </div>
+  </div>
+
+  <button id="reiniciar" style="display:none">🔁 Reiniciar Juego</button>
+
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- Modal (oculto por defecto) -->
+  <div id="modalMobile" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h3>📱 Modo escritorio recomendado</h3>
+      <p>Para una mejor experiencia, activa el modo escritorio en tu navegador.</p>
+      <button onclick="document.getElementById('modalMobile').style.display='none'">Entendido</button>
+    </div>
+  </div>
+
+<script>
+/* --------------------------
+   DETECCIÓN DE DISPOSITIVO
+   -------------------------- */
+function esMovil() {
+  return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+}
+if(esMovil()){
+  document.getElementById('modalMobile').style.display='flex';
+}
+
+/* --------------------------
+   LÓGICA DEL JUEGO (CON FX)
+   -------------------------- */
+const numeroJugadorInput = document.getElementById('numeroJugador');
+const confirmarBtn = document.getElementById('confirmar');
+const logJugador = document.getElementById('logJugador');
+const logIA = document.getElementById('logIA');
+const turnoTexto = document.getElementById('turno');
+const reiniciarBtn = document.getElementById('reiniciar');
+const statusJugador = document.getElementById('statusJugador');
+const statusIA = document.getElementById('statusIA');
+const panelJugador = document.getElementById('panelJugador');
+const panelIA = document.getElementById('panelIA');
+
+let numeroJugador = '';
+let numeroIA = '';
+let terminado = false;
+
+// UTIL
+function generarNumeroAleatorio(){
+  let digits=[];
+  while(digits.length<4){
+    const d=Math.floor(Math.random()*10).toString();
+    if(!digits.includes(d)) digits.push(d);
+  }
+  return digits.join('');
+}
+function validar4Unicos(s){ return /^\d{4}$/.test(s) && new Set(s).size===4; }
+function calcularPicasFijas(secreto, intento){
+  let p=0,f=0;
+  for(let i=0;i<4;i++){
+    if(intento[i]===secreto[i]) f++;
+    else if(secreto.includes(intento[i])) p++;
+  }
+  return {picas:p, fijas:f};
+}
+
+/* AUDIO */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, duration=0.12, gain=0.08, type='sine'){
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq; g.gain.value = gain;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); setTimeout(()=>{o.stop();}, duration*1000);
+}
+function playVictory(){
+  playTone(880,0.18,0.08,'sine');
+  setTimeout(()=>playTone(1100,0.22,0.08,'sine'),90);
+  setTimeout(()=>playTone(1320,0.3,0.12,'sine'),220);
+}
+function playJugada(){ playTone(560,0.09,0.04,'triangle') }
+function playPing(){ playTone(720,0.08,0.03,'sine') }
+
+/* FX partículas */
+const canvas = document.getElementById('fxCanvas');
+const ctx = canvas.getContext('2d');
+function fitCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+fitCanvas(); window.addEventListener('resize', fitCanvas);
+let particles = [];
+function spawnParticles(x,y, color='#00ffcc', count=40){
+  for(let i=0;i<count;i++){
+    particles.push({x,y,vx:(Math.random()-0.5)*6,vy:(Math.random()-0.8)*6,life:60+Math.random()*30,size:4+Math.random()*3,color,decay:0.96+Math.random()*0.02});
+  }
+}
+function updateParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life--; p.vx*=p.decay; p.vy*=p.decay;
+    ctx.globalAlpha=Math.max(0,p.life/90);
+    ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    if(p.life<=0) particles.splice(i,1);
+  }
+  requestAnimationFrame(updateParticles);
+}
+updateParticles();
+
+/* Flujo del juego */
+function turnoJugador(intento){
+  if(terminado) return;
+  playJugada();
+  const r = calcularPicasFijas(numeroIA,intento);
+  logJugadorInsert(intento,r);
+  setStatus(statusJugador, `✅ ${r.fijas} Fijas, ⚡ ${r.picas} Picas`, false, r.fijas>0 ? '#00ffcc' : '#ffff66');
+  if(r.fijas===4){
+    terminado=true;
+    turnoTexto.innerHTML = `<span class="winnerText">🎉 ¡Has ganado! Tu número: ${numeroJugador} — IA: ${numeroIA}</span>`;
+    playVictory();
+    spawnParticles(window.innerWidth*0.33, window.innerHeight*0.45, '#00ffcc', 90);
+    reiniciarBtn.style.display='block';
+    setStatus(statusIA,'',false);
+    setStatus(statusJugador,'¡Victoria!',false,'#00ffcc');
+    return;
+  }
+  turnoTexto.textContent = '🤖 Turno de la IA...';
+  setStatus(statusIA,'💭 Pensando...',true,'#ff99ff');
+  playPing();
+  setTimeout(()=>{
+    turnoIA();
+    if(!terminado) turnoTexto.textContent = '🟢 Tu turno';
+  },1400);
+}
+function turnoIA(){
+  if(terminado) return;
+  const intento = generarNumeroAleatorio();
+  playJugada();
+  const r = calcularPicasFijas(numeroJugador,intento);
+  logIAInsert(intento,r);
+  setStatus(statusIA, `🎯 ${r.fijas} Fijas, ⚡ ${r.picas} Picas`, false, r.fijas>0 ? '#00ffcc' : '#ff99ff');
+  if(r.fijas===4){
+    terminado=true;
+    turnoTexto.innerHTML = `<span class="winnerText">🤖 ¡La IA ha ganado! Número IA: ${numeroIA} — Tu número: ${numeroJugador}</span>`;
+    playVictory();
+    spawnParticles(window.innerWidth*0.66, window.innerHeight*0.45, '#ff66ff', 110);
+    reiniciarBtn.style.display='block';
+    setStatus(statusJugador,'',false);
+    setStatus(statusIA,'¡Victoria IA!',false,'#ff66ff');
+  }
+}
+function logJugadorInsert(intento,r){
+  const div=document.createElement('div');
+  div.innerHTML=`Intento ${logJugador.children.length+1}: <b>${intento}</b> → <span class="fija">${r.fijas} Fijas</span>, <span class="pica">${r.picas} Picas</span>`;
+  logJugador.appendChild(div); logJugador.scrollTop=logJugador.scrollHeight;
+}
+function logIAInsert(intento,r){
+  const div=document.createElement('div');
+  div.innerHTML=`IA intenta ${logIA.children.length+1}: <b>${intento}</b> → <span class="fija">${r.fijas} Fijas</span>, <span class="pica">${r.picas} Picas</span>`;
+  logIA.appendChild(div); logIA.scrollTop=logIA.scrollHeight;
+}
+function setStatus(element,text,thinking=false,color=null){
+  if(thinking){element.innerHTML=`<span>${text}</span> <span class="dots"><span class="dot anim"></span><span class="dot anim"></span><span class="dot anim"></span></span>`;}
+  else element.textContent=text;
+  if(color) element.style.boxShadow=`0 0 10px ${color}`; else element.style.boxShadow='';
+}
+
+confirmarBtn.addEventListener('click', ()=>{
+  const v=numeroJugadorInput.value.trim();
+  if(!validar4Unicos(v)){alert('Ingresa 4 dígitos únicos (ej: 1234)');return;}
+  numeroJugador=v; numeroIA=generarNumeroAleatorio();
+  document.getElementById('jugador-area').innerHTML=`
+    <p>Intenta adivinar el número de la IA:</p>
+    <input id="intento" maxlength="4" placeholder="Ej: 5678" inputmode="numeric" />
+    <button class="btn" id="probar">Probar</button>`;
+  turnoTexto.textContent='🟢 Tu turno';
+  setStatus(statusJugador,'Listo para jugar',false,'#00ffcc');
+  document.getElementById('probar').addEventListener('click', ()=>{
+    if(terminado) return;
+    const intento=document.getElementById('intento').value.trim();
+    if(!validar4Unicos(intento)){alert('Ingresa 4 dígitos únicos (ej: 5678)');return;}
+    turnoJugador(intento);
+  });
+});
+reiniciarBtn.addEventListener('click',()=>location.reload());
+
+const symbols=["√","π","∑","∫","∞","∆","µ","θ","λ","Ω","ψ","≠","≈"];
+function spawnBgSymbol(){
+  const s=document.createElement('div');
+  s.className='bg-symbol';
+  s.textContent=symbols[Math.floor(Math.random()*symbols.length)];
+  s.style.left=Math.random()*100+'vw';
+  s.style.top=(-10-Math.random()*6)+'vh';
+  s.style.opacity=0.12+Math.random()*0.15;
+  s.style.fontSize=(0.9+Math.random()*1.1)+'rem';
+  document.body.appendChild(s);
+  const duration=7000+Math.random()*8000;
+  const start=performance.now();
+  function anim(t){
+    const p=(t-start)/duration;
+    if(p>=1){s.remove();return;}
+    s.style.top=(p*(100+40)-10)+'vh';
+    requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+}
+setInterval(spawnBgSymbol,300);
+
+document.addEventListener('click',function initAudioOnce(){
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  document.removeEventListener('click',initAudioOnce);
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    const probar=document.getElementById('probar');
+    if(probar) probar.click(); else confirmarBtn.click();
+  }
+});
+</script>
+</body>
+</html>
+
+
